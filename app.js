@@ -318,8 +318,11 @@ function moveToEightRankAFile(startingSquareID, pieceColor){
             currentFile.charCodeAt(currentFile.length-1) - 1
         );
         currentRank++;
+        // Check bounds before accessing DOM
+        if(currentFile < "a" || currentRank > 8) break;
         let currentSquareID = currentFile+currentRank;
         let currentSquare = document.getElementById(currentSquareID);
+        if(!currentSquare) break; // Safety check
         let squareContent = isSquareOccupied(currentSquare);
         if(squareContent != "blank" && squareContent == pieceColor) return;
         legalSquares.push(currentSquareID);
@@ -338,8 +341,11 @@ function moveToEightRankHFile(startingSquareID, pieceColor){
             currentFile.charCodeAt(currentFile.length-1) + 1
         );
         currentRank++;
+        // Check bounds before accessing DOM
+        if(currentFile > "h" || currentRank > 8) break;
         let currentSquareID = currentFile+currentRank;
         let currentSquare = document.getElementById(currentSquareID);
+        if(!currentSquare) break; // Safety check
         let squareContent = isSquareOccupied(currentSquare);
         if(squareContent != "blank" && squareContent == pieceColor) return;
         legalSquares.push(currentSquareID);
@@ -358,13 +364,16 @@ function moveToFirstRankAFile(startingSquareID, pieceColor){
             currentFile.charCodeAt(currentFile.length-1) - 1
         );
         currentRank--;
+        // Check bounds before accessing DOM
+        if(currentFile < "a" || currentRank < 1) break;
         let currentSquareID = currentFile+currentRank;
         let currentSquare = document.getElementById(currentSquareID);
+        if(!currentSquare) break; // Safety check
         let squareContent = isSquareOccupied(currentSquare);
         if(squareContent != "blank" && squareContent == pieceColor) return;
         legalSquares.push(currentSquareID);
         if(squareContent != "blank" && squareContent != pieceColor) return;
-
+        
     }
 }
 function moveToFirstRankHFile(startingSquareID, pieceColor){
@@ -378,8 +387,11 @@ function moveToFirstRankHFile(startingSquareID, pieceColor){
             currentFile.charCodeAt(currentFile.length-1) + 1
         );
         currentRank--;
+        // Check bounds before accessing DOM
+        if(currentFile > "h" || currentRank < 1) break;
         let currentSquareID = currentFile+currentRank;
         let currentSquare = document.getElementById(currentSquareID);
+        if(!currentSquare) break; // Safety check
         let squareContent = isSquareOccupied(currentSquare);
         if(squareContent != "blank" && squareContent == pieceColor) return;
         legalSquares.push(currentSquareID);
@@ -389,12 +401,10 @@ function moveToFirstRankHFile(startingSquareID, pieceColor){
 }
 
 //Queen Moves 
-
 function getQueenMoves (startingSquareID, pieceColor) {
     getRookMoves(startingSquareID, pieceColor);
     getBishopMoves(startingSquareID, pieceColor);
 }
-
 function getKingMoves(startingSquareID, pieceColor){
     const file = startingSquareID.charCodeAt(0)-97;
     const rank = startingSquareID.charAt(1);
