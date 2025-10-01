@@ -567,3 +567,13 @@ function isKingInCheck(squareId,pieceColor,boardSquaresArray) {
   }
   return false;
 }
+
+function showAlert(message) {
+  const alert= document.getElementById("alert");
+  alert.innerHTML=message;
+  alert.style.display="block";
+
+  setTimeout(function(){
+     alert.style.display="none";
+  },3000);
+}
