@@ -1,8 +1,10 @@
 let boardSquaresArray = [];
-let isWhiteTurn = true; 
-const boardSquares = document.querySelectorAll('.square'); //console.log(boardSquares);
-const pieces = document.querySelectorAll('.piece'); //console.log(pieces); 
-const piecesImages = document.querySelectorAll("img"); //console.log(piecesImages)
+let isWhiteTurn = true;
+let whiteKingSquare = "e1";
+let blackKingSquare = "e8";
+const boardSquares = document.getElementsByClassName("square");
+const pieces = document.getElementsByClassName("piece");
+const piecesImages = document.getElementsByTagName("img");
 let legalSquares = [];
 
 
@@ -26,6 +28,65 @@ function setupBoardSquares(){
     setupPieces(); 
 }
 
+//fillBoardSquaresArray to get currentBoard
+function fillBoardSquaresArray() {
+  const boardSquares = document.getElementsByClassName("square");
+  for (let i = 0; i < boardSquares.length; i++) {
+    let row = 8 - Math.floor(i / 8);
+    let column = String.fromCharCode(97 + (i % 8));
+    let square = boardSquares[i];
+    square.id = column + row;
+    let color = "";
+    let pieceType = "";
+    let pieceId="";
+    if (square.querySelector(".piece")) {
+      color = square.querySelector(".piece").getAttribute("color");
+      pieceType = square.querySelector(".piece").classList[1];
+      pieceId=square.querySelector(".piece").id;
+    } else {
+      color = "blank";
+      pieceType = "blank";
+      pieceId ="blank";
+    }
+    let arrayElement = {
+      squareId: square.id,
+      pieceColor: color,
+      pieceType: pieceType,
+      pieceId:pieceId
+    };
+    boardSquaresArray.push(arrayElement);
+  }
+}
+//function to fill and Array as pieces
+        function fillBoardSquaresArray() {
+    const boardSquares = document.getElementsByClassName("square");
+    for (let i = 0; i < boardSquares.length; i++) {
+        let row = 8 - Math.floor(i / 8);
+        let column = String.fromCharCode(97 + (i % 8));
+        let square = boardSquares[i];
+        square.id = column + row;
+        let color = "";
+        let pieceType = "";
+        let pieceId="";
+        if (square.querySelector(".piece")) {
+            color = square.querySelector(".piece").getAttribute("color");
+            pieceType = square.querySelector(".piece").classList[1];
+            pieceId=square.querySelector(".piece").id;
+        } else {
+            color = "blank";
+            pieceType = "blank";
+            pieceId ="blank";
+        }
+        let arrayElement = {
+            squareId: square.id,
+            pieceColor: color,
+            pieceType: pieceType,
+            pieceId:pieceId
+        };
+        boardSquaresArray.push(arrayElement);
+    }
+}
+
 setupBoardSquares();
 
 //function to setup each peice
@@ -45,7 +106,7 @@ function setupPieces() {
 
 
 
-//
+//drop and drag
 function allowDrop(e){
     e.preventDefault();
 }
@@ -429,4 +490,80 @@ function getKingMoves(startingSquareID, pieceColor){
             }
         }
     });
+}
+function checkForCheckMate(){
+  let kingSquare=isWhiteTurn ?whiteKingSquare:blackKingSquare;
+  let pieceColor=isWhiteTurn ? "white" : "black";
+  let boardSquaresArrayCopy=deepCopyArray(boardSquaresArray);
+  let kingIsCheck=isKingInCheck(kingSquare,pieceColor,boardSquaresArrayCopy);
+  if(!kingIsCheck)return;
+  let possibleMoves=getAllPossibleMoves(boardSquaresArrayCopy,pieceColor);
+  if(possibleMoves.length>0) return;
+  let message="";
+  isWhiteTurn ? (message="Black Wins!") : (message="White Wins!");
+  showAlert(message);
+}
+
+function isMoveValidAgainstCheck(legalSquares,startingSquareId,pieceColor,pieceType){
+  let kingSquare=isWhiteTurn ? whiteKingSquare : blackKingSquare;
+  let boardSquaresArrayCopy=deepCopyArray(boardSquaresArray);
+  let legalSquaresCopy = legalSquares.slice();
+  legalSquaresCopy.forEach((element)=>{
+    let destinationId=element;
+    boardSquaresArrayCopy=deepCopyArray(boardSquaresArray);
+    updateBoardSquaresArray(startingSquareId,destinationId,boardSquaresArrayCopy);
+    if(pieceType!="king" && isKingInCheck(kingSquare,pieceColor,boardSquaresArrayCopy)){
+      legalSquares=legalSquares.filter((item)=>item!=destinationId);
+    }
+    if(pieceType=="king" && isKingInCheck(destinationId,pieceColor,boardSquaresArrayCopy)){
+      legalSquares=legalSquares.filter((item)=>item!=destinationId);
+    }
+  })
+  return legalSquares;
+}
+
+function isKingInCheck(squareId,pieceColor,boardSquaresArray) {
+  let legalSquares=getRookMoves(squareId,pieceColor,boardSquaresArray);
+  for (let squareId of legalSquares) {
+    let pieceProperties = getPieceAtSquare(squareId,boardSquaresArray);
+    if(
+      (pieceProperties.pieceType=="rook" ||
+      pieceProperties.pieceType=="queen") &&
+      pieceColor!=pieceProperties.pieceColor
+    ) return true;
+  }
+  legalSquares=getBishopMoves(squareId,pieceColor,boardSquaresArray);
+  for (let squareId of legalSquares) {
+    let pieceProperties = getPieceAtSquare(squareId,boardSquaresArray);
+    if(
+      (pieceProperties.pieceType=="bishop" ||
+      pieceProperties.pieceType=="queen") &&
+      pieceColor!=pieceProperties.pieceColor
+    ) return true;
+  }
+   legalSquares=checkPawnDiagonalCaptures(squareId,pieceColor,boardSquaresArray);
+  for (let squareId of legalSquares) {
+    let pieceProperties = getPieceAtSquare(squareId,boardSquaresArray);
+    if(
+      (pieceProperties.pieceType=="pawn") &&
+      pieceColor!=pieceProperties.pieceColor
+    ) return true;
+  }
+  legalSquares=getKnightMoves(squareId,pieceColor,boardSquaresArray);
+  for (let squareId of legalSquares) {
+    let pieceProperties = getPieceAtSquare(squareId,boardSquaresArray);
+    if(
+      (pieceProperties.pieceType=="knight") &&
+      pieceColor!=pieceProperties.pieceColor
+    ) return true;
+  }
+  legalSquares=getKingMoves(squareId,pieceColor,boardSquaresArray);
+  for (let squareId of legalSquares) {
+    let pieceProperties = getPieceAtSquare(squareId,boardSquaresArray);
+    if(
+      (pieceProperties.pieceType=="king") &&
+      pieceColor!=pieceProperties.pieceColor
+    ) return true;
+  }
+  return false;
 }
